@@ -133,21 +133,24 @@ class PostgreSQLDatabase extends SS_Database {
 		if(!$parameters)
 			return false;
 
-		($parameters['username']!='') ? $username=' user=' . $parameters['username'] : $username='';
-		($parameters['password']!='') ? $password=' password=\'' . $parameters['password'] . '\'' : $password='';
+		(!empty($parameters['username'])) ? $username=' user=' . $parameters['username'] : $username='';
+		(!empty($parameters['password'])) ? $password=' password=' . $parameters['password'] : $password='';
 
 		if(!isset($this->database))
 			$dbName=$parameters['database'];
 		else $dbName=$this->database;
-
-		$port = empty($parameters['port']) ? 5432 : $parameters['port'];
-
+		
+        $port = empty($parameters['port']) ? 5432 : $parameters['port'];
+		(!empty($parameters['server'])) ?  $server=' host=' . $parameters['server'] . ' port=' . $port : $server='';
+		
+		
 		// First, we need to check that this database exists.  To do this, we will connect to the 'postgres' database first
 		// some setups prevent access to this database so set PostgreSQLDatabase::$check_database_exists = false
 		if(self::$check_database_exists) {
 			// Close the old connection
 			if($this->dbConn) pg_close($this->dbConn);
-			$this->dbConn = pg_connect('host=' . $parameters['server'] . ' port=' . $port . ' dbname=postgres' . $username . $password);
+            $this->dbConn = pg_connect($server . ' dbname=postgres' . $username . $password);			
+
 
 			if(!$this->dbConn) {
 				throw new ErrorException("Couldn't connect to PostgreSQL database");
@@ -164,7 +167,7 @@ class PostgreSQLDatabase extends SS_Database {
 		if($this->dbConn) pg_close($this->dbConn);
 
 		//Now we can be sure that this database exists, so we can connect to it
-		$this->dbConn = pg_connect('host=' . $parameters['server'] . ' port=' . $port . ' dbname=' . $dbName . $username . $password);
+        $this->dbConn = pg_connect($server . ' dbname=' . $dbName . $username . $password);
 
 		if(!$this->dbConn) {
 			throw new ErrorException("Couldn't connect to PostgreSQL database");
